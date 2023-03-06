@@ -11,4 +11,4 @@ CREATE TABLE albums(
     genre VARCHAR(100)
 );
 
-SHOW CREATE TABLE albums\G;
+# SHOW CREATE TABLE albums\G;
