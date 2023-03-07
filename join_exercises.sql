@@ -95,15 +95,16 @@ ORDER BY Department_Name ASC;
 SELECT CONCAT(e.first_name, ' ', e.last_name) AS Employee, d.dept_name AS Department,
        (SELECT CONCAT(m.first_name, ' ', m.last_name)
         FROM dept_manager AS dm
-                 JOIN employees AS m ON dm.emp_no = m.emp_no
+                 left JOIN employees AS m ON dm.emp_no = m.emp_no
         WHERE dm.dept_no = d.dept_no AND dm.to_date = '9999-01-01'
         LIMIT 1) AS Manager
 From current_dept_emp AS cde
-JOIN employees AS e ON cde.emp_no = e.emp_no
-JOIN dept_emp AS de ON de.emp_no = e.emp_no
-JOIN departments AS d ON d.dept_no = de.dept_no
-WHERE cde.to_date = '9999-01-01' AND cde.emp_no
-ORDER BY Department ASC, e.emp_no ASC limit 240124;
+left JOIN employees AS e ON cde.emp_no = e.emp_no
+left JOIN dept_emp AS de ON de.emp_no = e.emp_no
+left JOIN departments AS d ON d.dept_no = de.dept_no
+WHERE cde.to_date = '9999-01-01'
+ORDER BY Department, e.emp_no;
+# Incorrect (populates more than 260k)
 
 # +----------------------+------------------+-----------------+
 # | Employee             | Department       | Manager         |
@@ -114,3 +115,15 @@ ORDER BY Department ASC, e.emp_no ASC limit 240124;
 # | Jungsoon Syrzycki    | Customer Service | Yuchang Weedman |
 # | Yuichiro Swick       | Customer Service | Yuchang Weedman |
 # ... 240,124 Rows in total
+
+# Break it down
+SELECT CONCAT(e.first_name, ' ', e.last_name) AS Employee,
+       departments.dept_name AS Department,
+       CONCAT(m.first_name, ' ', m.last_name) AS Manager
+from employees e
+join dept_emp on e.emp_no = dept_emp.emp_no
+join departments on dept_emp.dept_no = departments.dept_no
+join dept_manager on departments.dept_no = dept_manager.dept_no
+join employees m on dept_manager.emp_no = m.emp_no
+WHERE dept_emp.to_date = '9999-01-01' and dept_manager.to_date = '9999-01-01'
+ORDER BY Department, e.emp_no;
